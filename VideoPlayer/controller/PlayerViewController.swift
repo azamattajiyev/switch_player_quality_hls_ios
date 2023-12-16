@@ -18,7 +18,7 @@ extension AVPlayerViewController: StreamProxyDelegate {
     
     func streamProxy(_ proxy: StreamProxy, didReceiveMainPlaylist playlist: Playlist) {
         guard let playlist = playlist as? MasterPlaylist else { return }
-        let resolutions = Array<Resolution>(playlist.mediaPlaylists.values.flatMap({ $0.resolution })).sorted()
+        let resolutions = Array<Resolution>(playlist.mediaPlaylists.values.compactMap({ $0.resolution })).sorted()
         
         if !resolutions.isEmpty {
             proxy.policy = FixedQualityPolicy(quality: .withResolution(resolutions[0]))
