@@ -9,16 +9,15 @@
 import SwiftUI
 
 struct ContentView: View {
-    let factory: AppFactory
     var body: some View{
         GeometryReader{
             let size = $0.size
             let safeArea = $0.safeAreaInsets
-            Home(size: size, safeArea: safeArea,viewModel: .init(factory: factory))
+            Home(size: size, safeArea: safeArea,viewModel: .init())
                 .ignoresSafeArea()
         }.preferredColorScheme(.dark)
     }
 }
 #Preview {
-    ContentView(factory:AppFactory())
+    ContentView()
 }

@@ -21,8 +21,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         let window = UIWindow(frame: UIScreen.main.bounds)
         
-        factory.proxy.start(withPort: AppConfig.serverPort, bonjourName: nil)
-        let contentView = ContentView(factory:factory)
+//        factory.proxy.start(withPort: AppConfig.serverPort, bonjourName: nil)
+        let contentView = ContentView()
         window.rootViewController = UIHostingController(rootView: contentView)
 //        window.rootViewController = factory.rootViewController
         window.makeKeyAndVisible()

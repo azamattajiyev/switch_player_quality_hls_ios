@@ -56,7 +56,6 @@ class FixedQualityPolicy: StreamProxyPolicy {
             case .withResolution(let resolution):
                 mediaPlaylist = playlist.mediaPlaylists.values.first { $0.resolution == .some(resolution) }
             }
-            
             newSegment = mediaPlaylist?.segment(withSequence: segment.sequence)
         }
         

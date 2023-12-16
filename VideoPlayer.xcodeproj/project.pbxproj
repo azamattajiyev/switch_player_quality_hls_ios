@@ -13,7 +13,6 @@
 		893C58C12B28698C00F2DA5B /* DoubleTapSeek.swift in Sources */ = {isa = PBXBuildFile; fileRef = 893C58BE2B28698C00F2DA5B /* DoubleTapSeek.swift */; };
 		893C58C22B28698C00F2DA5B /* Home.swift in Sources */ = {isa = PBXBuildFile; fileRef = 893C58BF2B28698C00F2DA5B /* Home.swift */; };
 		893C58C52B2877AB00F2DA5B /* VideoViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 893C58C42B2877AB00F2DA5B /* VideoViewModel.swift */; };
-		893C58C92B29CBDC00F2DA5B /* CustomPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 893C58C82B29CBDC00F2DA5B /* CustomPicker.swift */; };
 		CC1686041E642BCC00D8B8F5 /* URL+Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1686031E642BCC00D8B8F5 /* URL+Utils.swift */; };
 		CC2ACA041E5A63E7004BA2A6 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2ACA031E5A63E7004BA2A6 /* AppConfig.swift */; };
 		CC3862CE1E6199BC00D6A598 /* PlaylistParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC3862CD1E6199BC00D6A598 /* PlaylistParser.swift */; };
@@ -39,7 +38,6 @@
 		893C58BE2B28698C00F2DA5B /* DoubleTapSeek.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DoubleTapSeek.swift; sourceTree = "<group>"; };
 		893C58BF2B28698C00F2DA5B /* Home.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Home.swift; sourceTree = "<group>"; };
 		893C58C42B2877AB00F2DA5B /* VideoViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoViewModel.swift; sourceTree = "<group>"; };
-		893C58C82B29CBDC00F2DA5B /* CustomPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPicker.swift; sourceTree = "<group>"; };
 		9EFA8A90EEE1F384B64BAFA7 /* Pods-VideoPlayer.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-VideoPlayer.release.xcconfig"; path = "Target Support Files/Pods-VideoPlayer/Pods-VideoPlayer.release.xcconfig"; sourceTree = "<group>"; };
 		ADFE3A00E44FD224BF0F3C2F /* Pods_VideoPlayer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_VideoPlayer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BE02AF3F044A4ADC0CE4FB33 /* Pods-VideoPlayer.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-VideoPlayer.debug.xcconfig"; path = "Target Support Files/Pods-VideoPlayer/Pods-VideoPlayer.debug.xcconfig"; sourceTree = "<group>"; };
@@ -100,7 +98,6 @@
 				893C58BF2B28698C00F2DA5B /* Home.swift */,
 				CCD0856F1E6AEF43008E6FA6 /* ResolutionSelectionControl.swift */,
 				893C58B92B285D1000F2DA5B /* ContentView.swift */,
-				893C58C82B29CBDC00F2DA5B /* CustomPicker.swift */,
 			);
 			path = view;
 			sourceTree = "<group>";
@@ -338,7 +335,6 @@
 				893C58C52B2877AB00F2DA5B /* VideoViewModel.swift in Sources */,
 				CC2ACA041E5A63E7004BA2A6 /* AppConfig.swift in Sources */,
 				CCA575D21E632F58002B7CF2 /* StreamProxyPolicy.swift in Sources */,
-				893C58C92B29CBDC00F2DA5B /* CustomPicker.swift in Sources */,
 				CCDECEED1E58A9E000CFACCF /* AppFactory.swift in Sources */,
 				CC3862D21E61E43700D6A598 /* Segment.swift in Sources */,
 				CC3862D01E619A7200D6A598 /* Playlist.swift in Sources */,

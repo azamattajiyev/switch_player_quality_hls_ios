@@ -12,19 +12,21 @@ import SwiftUI
 
 extension Home{
     class ViewModel: ObservableObject, StreamProxyDelegate  {
-        let factory: AppFactory
+        lazy var proxy: StreamProxy = {
+            return StreamProxy(remotePlaylistUrl: playlistUrl)
+        }()
+        let playlistUrl = URL(string: "https://bv-storage-staging.belet.me/videos/UC8yUlNkVO5ak_nnOW6bsaFQ/kDuUS9g77R4/master.m3u8")!
         static var count = 0
+        var isAutoQuality:Bool = false
         @Published var player =  AVPlayer()
-        init(factory: AppFactory) {
-            self.factory = factory
-            if let url = factory.proxy.localPlaylistUrl {
+        init() {
+            proxy.start(withPort: AppConfig.serverPort, bonjourName: nil)
+            if let url = proxy.localPlaylistUrl {
                 let playerItem = AVPlayerItem(url: url)
                 self.player.replaceCurrentItem(with: playerItem)
-                self.player.currentItem?.preferredForwardBufferDuration = 60.0
-                factory.proxy.proxyDelegate = self
+                self.player.currentItem?.preferredForwardBufferDuration = 10
+                proxy.proxyDelegate = self
             }
-            ViewModel.count += 1
-            print(ViewModel.count)
         }
         @Published var showPlayerControllers: Bool =  false
         @Published var isPlaying: Bool =  false
@@ -125,9 +127,17 @@ extension Home{
         @Published var selectedResolution: Resolution = .zero
         
         var resolutionTapHandler: ((_ newResolution: Resolution) -> Void)?
+        var customTapHandler: ((_ num: Int) -> Void)?
         
-        
-        
+        func auto() {
+            customTapHandler?(0)
+        }
+        func min() {
+            customTapHandler?(1)
+        }
+        func max() {
+            customTapHandler?(2)
+        }
         func changedResolution() {
             print(selectedResolution)
             resolutionTapHandler?(selectedResolution)
@@ -136,22 +146,26 @@ extension Home{
         func streamProxy(_ proxy: StreamProxy, didReceiveMainPlaylist playlist: Playlist) {
             guard let playlist = playlist as? MasterPlaylist else { return }
             let resolutions = Array<Resolution>(playlist.mediaPlaylists.values.compactMap({ $0.resolution })).sorted()
-            print(resolutions)
             if !resolutions.isEmpty {
-                proxy.policy = FixedQualityPolicy(quality: .withResolution(resolutions[0]))
-                //  let control = ResolutionSelectionControl(frame: .zero)
-                //  control.resolutions = resolutions
-                //
-                //  control.resolutionTapHandler = { (res) in
-                //      proxy.policy = FixedQualityPolicy(quality: .withResolution(res))
-                //  }
-                //
-                //  selectionControl = control
-                self.isPlaying = true
-                print(ViewModel.count)
+          
+                proxy.policy = FixedQualityPolicy(quality: .withResolution(selectedResolution))
+               
                 self.resolutions = resolutions
                 self.resolutionTapHandler = { (res) in
                     proxy.policy = FixedQualityPolicy(quality: .withResolution(res))
+                }
+                self.customTapHandler = { (num) in
+                    switch num {
+                        case 1:
+                           return  proxy.policy = FixedQualityPolicy(quality: .min)
+                    
+                        case 2:
+                            return  proxy.policy = FixedQualityPolicy(quality: .max)
+                    default :
+                        return proxy.policy = FixedQualityPolicy(quality: .withResolution(.zero))
+                    
+                    }
+                    
                 }
             }
         }

@@ -15,11 +15,11 @@ struct Home: View {
     @State  var player: AVPlayer? = AVPlayer()
     @State private var showPlayerControllers: Bool =  false
     @State private var text: String = ""
-    @State private var isPlaying: Bool =  false
+//    @State private var isPlaying: Bool =  false
     @State private var isSeeking: Bool =  false
     @State private var isFinishingPlaying: Bool =  false
     @State private var timeoutTask: DispatchWorkItem?
-    @GestureState private var isDragging: Bool = false
+//    @GestureState private var isDragging: Bool = false
 //    @State private var bufferProgress: CGFloat = 0
 //    @State private var progress: CGFloat = 0
 //    @State private var lastDraggedProgress: CGFloat = 0
@@ -36,13 +36,13 @@ struct Home: View {
             let videoPlayerSize: CGSize = .init(width: size.width, height: size.height/3.5)
             
             ZStack{
-                if let player {
+                if  viewModel.player != nil {
                     CustomVideoPlayer(player: viewModel.player)
                         .overlay{
                             Rectangle()
                                 .fill(.black.opacity(0.4))
-                                .opacity(showPlayerControllers || isDragging ? 1 : 0)
-                                .animation(.easeInOut(duration: 0.35), value: isDragging)
+                                .opacity(showPlayerControllers || viewModel.isDragging ? 1 : 0)
+                                .animation(.easeInOut(duration: 0.35), value: viewModel.isDragging)
                                 .overlay{
                                     PlayBackControls()
                                 }
@@ -50,12 +50,12 @@ struct Home: View {
                         .overlay{
                             HStack(spacing: 60){
                                 DoubleTapSeek(){
-                                    let seconds = player.currentTime().seconds - 15
-                                    player.seek(to: .init(seconds: seconds, preferredTimescale: 600))
+                                    let seconds = viewModel.player.currentTime().seconds - 15
+                                    viewModel.player.seek(to: .init(seconds: seconds, preferredTimescale: 600))
                                 }
                                 DoubleTapSeek(isForward:true){
-                                    let seconds = player.currentTime().seconds + 15
-                                    player.seek(to: .init(seconds: seconds, preferredTimescale: 600))
+                                    let seconds = viewModel.player.currentTime().seconds + 15
+                                    viewModel.player.seek(to: .init(seconds: seconds, preferredTimescale: 600))
                                 }
                             }
                         }
@@ -63,7 +63,7 @@ struct Home: View {
                             withAnimation(.easeInOut(duration: 0.35)){
                                 showPlayerControllers.toggle()
                             }
-                            if isPlaying {
+                            if viewModel.isPlaying {
                                 timeoutControls()
                             }
                         }
@@ -128,19 +128,39 @@ struct Home: View {
                 .frame(width: max(size.width * viewModel.progress, 0))
             
         }
-        .frame(height: showPlayerControllers || isDragging ? 6 : 3)
+        .frame(height: showPlayerControllers || viewModel.isDragging ? 6 : 3)
+        .onTapGesture { value in
+            if let timeoutTask{
+                timeoutTask.cancel()
+            }
+        
+            let calculatedProgress = (value.x / videoSize.width)
+            
+            viewModel.progress = max(min(calculatedProgress, 1), 0)
+            viewModel.lastDraggedProgress = viewModel.progress
+            viewModel.lastBufferProgress = viewModel.bufferProgress
+            if let currentPlayerItem = viewModel.player.currentItem {
+                let totalDuration = currentPlayerItem.duration.seconds
+                
+                viewModel.player.seek(to: .init(seconds: totalDuration * viewModel.progress, preferredTimescale: 600))
+            }
+            
+            if viewModel.isPlaying {
+                timeoutControls()
+            }
+          }
         .overlay(alignment: .leading){
             Circle()
                 .fill(.red)
                 .frame(width: 15,height: 15)
-                .scaleEffect(showPlayerControllers || isDragging ? 1 : 0.001, anchor: viewModel.progress * size.width > 15 ? .trailing : .leading)
+                .scaleEffect(showPlayerControllers || viewModel.isDragging ? 1 : 0.001, anchor: viewModel.progress * size.width > 15 ? .trailing : .leading)
             // For More Dragging Space
                 .frame(width: 50,height: 50)
                 .contentShape(Rectangle())
                 .offset(x:size.width * viewModel.progress)
                 .gesture(
                     DragGesture()
-                        .updating($isDragging, body: { _, out, _ in
+                        .updating(viewModel.$isDragging, body: { _, out, _ in
                             out = true
                         })
                         .onChanged({ value in
@@ -168,7 +188,7 @@ struct Home: View {
                                 viewModel.player.seek(to: .init(seconds: totalDuration * viewModel.progress, preferredTimescale: 600))
                             }
                             
-                            if isPlaying {
+                            if viewModel.isPlaying {
                                 timeoutControls()
                             }
                             
@@ -180,6 +200,7 @@ struct Home: View {
                 .offset(x: viewModel.progress * videoSize.width > 15 ? -15 : 0 )
                 .frame(width: 15,height: 15)
         }
+        
     }
     
     @ViewBuilder
@@ -215,7 +236,7 @@ struct Home: View {
             }
         }
         .frame(width: thumbSize.width, height: thumbSize.height)
-        .opacity(isDragging ? 1 : 0)
+        .opacity(viewModel.isDragging ? 1 : 0)
         .offset(x:viewModel.progress * (videoSize.width - thumbSize.width))
         .offset(x: 10)
     }
@@ -233,7 +254,7 @@ struct Home: View {
                     viewModel.progress = .zero
                     viewModel.lastDraggedProgress = .zero
                 }
-                if isPlaying {
+                if viewModel.isPlaying {
                     viewModel.player.pause()
                     if let timeoutTask {
                         timeoutTask.cancel()
@@ -243,10 +264,10 @@ struct Home: View {
                     timeoutControls()
                 }
                 withAnimation(.easeInOut(duration: 0.2)){
-                    isPlaying.toggle()
+                    viewModel.isPlaying.toggle()
                 }
             }) {
-                Image(systemName: isFinishingPlaying ? "arrow.clockwise" : (isPlaying ? "pause.fill" : "play.fill"))
+                Image(systemName: isFinishingPlaying ? "arrow.clockwise" : (viewModel.isPlaying ? "pause.fill" : "play.fill"))
                     .font(.title2)
                     .foregroundColor(.white)
                     .padding(15)
@@ -260,29 +281,37 @@ struct Home: View {
                 .opacity(0.6)
             
         }
-        .opacity(showPlayerControllers && !isDragging ? 1 : 0)
-        .animation(.easeInOut(duration: 0.2), value: showPlayerControllers && !isDragging )
+        .opacity(showPlayerControllers && !viewModel.isDragging ? 1 : 0)
+        .animation(.easeInOut(duration: 0.2), value: showPlayerControllers && !viewModel.isDragging )
     }
     @ViewBuilder
     func  ResolutionSelectionControl()-> some View  {
-        Picker("Appearance", selection: $viewModel.selectedResolution) {
-            ForEach(viewModel.resolutions, id: \.self) {
-                Text($0.description)
+        VStack{
+            Text("(\(text))")
+            Button(action: {
+                viewModel.auto()
+                text = "auto"
+            }, label: {Text("auto")})
+            Button(action: {
+                viewModel.max()
+                text = "max"
+            }, label: {Text("max")})
+            Button(action: {
+                viewModel.min()
+                text = "min"
+            }, label: {Text("min")})
+        
+            Picker("Appearance", selection: $viewModel.selectedResolution) {
+                ForEach(viewModel.resolutions, id: \.self) {
+                    Text($0.description)
+                }
             }
-//            List(viewModel.resolutions, id: \.self) { item in
-//                Button(action: {
-//                    viewModel.selectedResolution = item
-//                    viewModel.changedResolution()
-//                }, label: {
-//                    Text(item.description)
-//                        .background( viewModel.selectedResolution == item ? Color.gray : Color.red)
-//                })
-//            }
-        }
-        .pickerStyle(.segmented)
-        .onChange(of: viewModel.selectedResolution) { newValue in
-            viewModel.changedResolution()
-            print("Selected option changed to: \(newValue)")
+            .pickerStyle(.segmented)
+            .onChange(of: viewModel.selectedResolution) { newValue in
+                viewModel.changedResolution()
+                text = "\(newValue)"
+                print("Selected option changed to: \(newValue)")
+            }
         }
     }
     
