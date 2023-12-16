@@ -129,6 +129,56 @@ extension Home{
                 isPlaying.toggle()
             }
         }
+        func onEndedDragGesture(value: DragGesture.Value){
+            lastDraggedProgress = progress
+            lastBufferProgress = bufferProgress
+            if let currentPlayerItem = player.currentItem {
+                let totalDuration = currentPlayerItem.duration.seconds
+                player.seek(to: .init(seconds: totalDuration * progress, preferredTimescale: 600))
+            }
+            
+            if isPlaying {
+                timeoutControls()
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2){
+                self.isSeeking = false
+            }
+        }
+        func onChangedDragGesture(value: DragGesture.Value, videoSize: CGSize){
+            if let timeoutTask{
+                timeoutTask.cancel()
+            }
+            
+            let translationX: CGFloat = value.translation.width
+            let calculatedProgress = (translationX / videoSize.width) + lastDraggedProgress
+            
+            progress = Swift.max(Swift.min(calculatedProgress, 1), 0)
+            isSeeking = true
+            let dragIndex = Int(progress / 0.01)
+            if thumbnailFrames.indices.contains(dragIndex){
+                draggingImage = thumbnailFrames[dragIndex]
+            }
+        }
+        func onTabGestureVideoSeekerView (value: CGPoint, videoSize: CGSize){
+            if let timeoutTask{
+                timeoutTask.cancel()
+            }
+            let calculatedProgress = (value.x / videoSize.width)
+            
+            progress = Swift.max(Swift.min(calculatedProgress, 1), 0)
+            lastDraggedProgress = progress
+            lastBufferProgress = bufferProgress
+            if let currentPlayerItem = player.currentItem {
+                let totalDuration = currentPlayerItem.duration.seconds
+                
+                player.seek(to: .init(seconds: totalDuration * progress, preferredTimescale: 600))
+            }
+            
+            if isPlaying {
+                timeoutControls()
+            }
+        }
         func generateThumbnailFrames(){
             Task.detached{
                 guard let asset = self.player.currentItem?.asset else {return}

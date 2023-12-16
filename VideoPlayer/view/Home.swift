@@ -74,23 +74,7 @@ struct Home: View {
         }
         .frame(height: viewModel.showPlayerControllers || viewModel.isDragging ? 6 : 3)
         .onTapGesture { value in
-            if let timeoutTask{
-                timeoutTask.cancel()
-            }
-            let calculatedProgress = (value.x / videoSize.width)
-            
-            viewModel.progress = max(min(calculatedProgress, 1), 0)
-            viewModel.lastDraggedProgress = viewModel.progress
-            viewModel.lastBufferProgress = viewModel.bufferProgress
-            if let currentPlayerItem = viewModel.player.currentItem {
-                let totalDuration = currentPlayerItem.duration.seconds
-                
-                viewModel.player.seek(to: .init(seconds: totalDuration * viewModel.progress, preferredTimescale: 600))
-            }
-            
-            if viewModel.isPlaying {
-                viewModel.timeoutControls()
-            }
+            viewModel.onTabGestureVideoSeekerView(value: value, videoSize: videoSize)
         }
         .overlay(alignment: .leading){
             Circle()
@@ -107,36 +91,10 @@ struct Home: View {
                             out = true
                         })
                         .onChanged({ value in
-                            if let timeoutTask{
-                                timeoutTask.cancel()
-                            }
-                            
-                            let translationX: CGFloat = value.translation.width
-                            let calculatedProgress = (translationX / videoSize.width) + viewModel.lastDraggedProgress
-                            
-                            viewModel.progress = max(min(calculatedProgress, 1), 0)
-                            viewModel.isSeeking = true
-                            let dragIndex = Int(viewModel.progress / 0.01)
-                            if thumbnailFrames.indices.contains(dragIndex){
-                                draggingImage = thumbnailFrames[dragIndex]
-                            }
+                            viewModel.onChangedDragGesture(value:value, videoSize: videoSize)
                         })
                         .onEnded({ value in
-                            viewModel.lastDraggedProgress = viewModel.progress
-                            viewModel.lastBufferProgress = viewModel.bufferProgress
-                            if let currentPlayerItem = viewModel.player.currentItem {
-                                let totalDuration = currentPlayerItem.duration.seconds
-                                
-                                viewModel.player.seek(to: .init(seconds: totalDuration * viewModel.progress, preferredTimescale: 600))
-                            }
-                            
-                            if viewModel.isPlaying {
-                                viewModel.timeoutControls()
-                            }
-                            
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2){
-                                viewModel.isSeeking = false
-                            }
+                            viewModel.onEndedDragGesture(value:value)
                         })
                 )
                 .offset(x: viewModel.progress * videoSize.width > 15 ? -15 : 0 )
@@ -260,4 +218,3 @@ struct Home: View {
 //#Preview {
 //    ContentView()
 //}
-
