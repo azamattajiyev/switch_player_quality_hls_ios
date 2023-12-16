@@ -77,13 +77,6 @@
 			path = ViewModel;
 			sourceTree = "<group>";
 		};
-		8F938DAB2208F9BEF4AA6924 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Pods;
-			sourceTree = "<group>";
-		};
 		CCD0856E1E6AEF26008E6FA6 /* view */ = {
 			isa = PBXGroup;
 			children = (
@@ -130,7 +123,6 @@
 			children = (
 				CCFAE6C01E37E29A005300F8 /* VideoPlayer */,
 				CCFAE6BF1E37E29A005300F8 /* Products */,
-				8F938DAB2208F9BEF4AA6924 /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
