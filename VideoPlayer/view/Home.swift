@@ -20,37 +20,35 @@ struct Home: View {
         VStack(spacing:0){
             let videoPlayerSize: CGSize = .init(width: size.width, height: size.height/3.5)
             ZStack{
-                if  viewModel.player != nil {
-                    CustomVideoPlayer(player: viewModel.player)
-                        .overlay{
-                            Rectangle()
-                                .fill(.black.opacity(0.4))
-                                .opacity(viewModel.showPlayerControllers || viewModel.isDragging ? 1 : 0)
-                                .animation(.easeInOut(duration: 0.35), value: viewModel.isDragging)
-                                .overlay{
-                                    PlayBackControls()
-                                }
-                        }
-                        .overlay{
-                            HStack(spacing: 60){
-                                DoubleTapSeek(){
-                                    viewModel.doubleTab()
-                                }
-                                DoubleTapSeek(isForward:true){
-                                    viewModel.doubleTab(isForward:true)
-                                }
+                CustomVideoPlayer(player: viewModel.player)
+                    .overlay{
+                        Rectangle()
+                            .fill(.black.opacity(0.4))
+                            .opacity(viewModel.showPlayerControllers || viewModel.isDragging ? 1 : 0)
+                            .animation(.easeInOut(duration: 0.35), value: viewModel.isDragging)
+                            .overlay{
+                                PlayBackControls()
+                            }
+                    }
+                    .overlay{
+                        HStack(spacing: 60){
+                            DoubleTapSeek(){
+                                viewModel.doubleTab()
+                            }
+                            DoubleTapSeek(isForward:true){
+                                viewModel.doubleTab(isForward:true)
                             }
                         }
-                        .onTapGesture {
-                            viewModel.onTapScreen()
-                        }
-                        .overlay(alignment: .leading){
-                            SeekerThumbnailView(videoPlayerSize)
-                        }
-                        .overlay(alignment: .bottom){
-                            VideoSeekerView (videoPlayerSize)
-                        }
-                }
+                    }
+                    .onTapGesture {
+                        viewModel.onTapScreen()
+                    }
+                    .overlay(alignment: .leading){
+                        SeekerThumbnailView(videoPlayerSize)
+                    }
+                    .overlay(alignment: .bottom){
+                        VideoSeekerView (videoPlayerSize)
+                    }
             } .frame(width: videoPlayerSize.width, height: videoPlayerSize.height)
             ResolutionSelectionControl()
         }.padding(.top, safeArea.top)
@@ -93,7 +91,7 @@ struct Home: View {
             if viewModel.isPlaying {
                 viewModel.timeoutControls()
             }
-          }
+        }
         .overlay(alignment: .leading){
             Circle()
                 .fill(.red)
@@ -228,7 +226,7 @@ struct Home: View {
                 viewModel.min()
                 text = "min"
             }, label: {Text("min")})
-        
+            
             Picker("Appearance", selection: $viewModel.selectedResolution) {
                 ForEach(viewModel.resolutions, id: \.self) {
                     Text($0.description)
@@ -248,7 +246,7 @@ struct Home: View {
         Button(action: {}) {
             Image(systemName: iconName)
                 .font(.title2)
-//                .fontWeight(.ultraLight)
+            //                .fontWeight(.ultraLight)
                 .foregroundColor(.white)
                 .padding(15)
                 .background{
