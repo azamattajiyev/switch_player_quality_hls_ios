@@ -172,6 +172,7 @@ struct Home: View {
     func  ResolutionSelectionControl()-> some View  {
         VStack{
             Text("(\(text))")
+            Text("State: \(viewModel.playerState.rawValue)")
             Button(action: {
                 viewModel.auto()
                 text = "auto"

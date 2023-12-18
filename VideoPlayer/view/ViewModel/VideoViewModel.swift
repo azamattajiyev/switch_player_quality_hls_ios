@@ -9,8 +9,19 @@
 import AVKit
 import SwiftUI
 
+extension Home{
+    
+}
 
 extension Home{
+    enum PlayerState :String {
+        case idle
+        case loading
+        case playing
+        case paused
+        case ended
+        case failed
+    }
     class ViewModel: ObservableObject, StreamProxyDelegate  {
         lazy var proxy: StreamProxy = {
             return StreamProxy(remotePlaylistUrl: playlistUrl)
@@ -19,6 +30,7 @@ extension Home{
         @Published var player =  AVPlayer()
         @Published var showPlayerControllers: Bool =  false
         @Published var isPlaying: Bool =  false
+        @Published var playerState: PlayerState = .idle
         @Published var isSeeking: Bool =  false
         @Published var isFinishingPlaying: Bool =  false
         @Published var timeoutTask: DispatchWorkItem?
@@ -31,8 +43,10 @@ extension Home{
         @Published var thumbnailFrames: [UIImage] =  []
         @Published var draggingImage: UIImage?
         @Published var playerStatusObserver: NSKeyValueObservation?
+        @Published var bufferEmptyObserver: NSKeyValueObservation?
         @Published var playerObserver: Any?
         @Published var audioIndex: Int = 1
+        private var timeObserver: Any?
         init() {
             proxy.start(withPort: AppConfig.serverPort, bonjourName: nil)
             if let url = proxy.localPlaylistUrl {
@@ -41,44 +55,83 @@ extension Home{
                 self.player.currentItem?.preferredForwardBufferDuration = 10
                 proxy.proxyDelegate = self
             }
+           
         }
+        
         func onAppear(){
             guard !isObserverAdded else {return}
             self.player.addPeriodicTimeObserver(forInterval: .init(seconds: 1, preferredTimescale: 600), queue: .main, using: { time in
+                if self.player.timeControlStatus == .playing {
+                    debugPrint("#player - info: isPlaying")
+                    self.playerState = .playing
+                } else if self.player.timeControlStatus == .paused {
+                    debugPrint("#player - info: isPaused")
+                    self.playerState = .paused
+                } else if self.player.timeControlStatus == .waitingToPlayAtSpecifiedRate {
+                    debugPrint("#player - info: isWaiting") //Buffering
+                    self.playerState = .loading
+                }
                 if let currentPlayerItem = self.player.currentItem{
                     let totalDuration = currentPlayerItem.duration.seconds
+                    let currentDuration = self.player.currentTime().seconds
+                    if currentDuration >=  totalDuration{
+                        self.playerState = .ended
+//                        return
+                    }
                     print(self.player.currentItem?.presentationSize)
                     let loadedTimeRanges: [NSValue] = currentPlayerItem.loadedTimeRanges
 
                     guard let timeRange = loadedTimeRanges.first?.timeRangeValue else { return }
 
-//                           let startTime = CMTimeGetSeconds(timeRange.start)
-//                           let loadedDuration = CMTimeGetSeconds(timeRange.duration)
-                       let end = CMTimeGetSeconds(timeRange.end)
-                    let currentDuration = self.player.currentTime().seconds
+//                  let startTime = CMTimeGetSeconds(timeRange.start)
+//                  let loadedDuration = CMTimeGetSeconds(timeRange.duration)
+                    let end = CMTimeGetSeconds(timeRange.end)
+                   
                     let calculationProgress = currentDuration / totalDuration
                     let calculationBufferProgress = end / totalDuration
+                    print(calculationBufferProgress)
+                    self.bufferProgress = calculationBufferProgress
                     if !self.isSeeking {
                         self.progress = calculationProgress
-                        self.bufferProgress = calculationBufferProgress
                         self.lastDraggedProgress = self.progress
                     }
-                    
                     if calculationProgress == 1 {
                         self.isFinishingPlaying = true
                         self.isPlaying = false
-                        
                     }
                 }
             })
             isObserverAdded = true
-            playerStatusObserver = player.observe(\.status, changeHandler: { player, _ in
-                if player.status == .readyToPlay {
-                    self.generateThumbnailFrames()
+            bufferEmptyObserver = self.player.currentItem?.observe(\.isPlaybackBufferEmpty, options: [.new]) {
+                [weak self] (_, _) in
+                self?.playerState = .loading
+            }
+            playerStatusObserver = self.player.observe(\.status, changeHandler: { player, _ in
+                switch player.status {
+                case .unknown:
+                    self.playerState = .failed
+                case .readyToPlay:
+                    self.playerState = .playing
+                    self.resumeVideo()
+                case .failed:
+                    self.playerState = .failed
+                @unknown default:
+                    break
                 }
             })
         }
+        func pauseVideo() {
+            player.pause()
+            isPlaying = false
+            playerState = .paused
+        }
         
+        func resumeVideo() {
+            player.play()
+            isPlaying = true
+            playerState = .playing
+        }
+
         func onDisappear(){
             playerStatusObserver?.invalidate()
         }
@@ -259,3 +312,56 @@ extension Home{
     }
 }
 
+//import AVKit
+//
+//enum VideoPlayerState {
+//    case idle
+//    case loading
+//    case playing
+//    case paused
+//    case ended
+//    case failed
+//}
+//
+//class VideoPlayerManager: ObservableObject {
+//    @Published var playerState: VideoPlayerState = .idle
+//
+//    private var player: AVPlayer?
+//
+//    func playVideo(url: URL) {
+//        let playerItem = AVPlayerItem(url: url)
+//        player = AVPlayer(playerItem: playerItem)
+//
+//        // Add observers for player item status changes
+//        playerItem.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), options: [.initial, .new], context: nil)
+//        player?.addPeriodicTimeObserver(forInterval: CMTime(seconds: 1, preferredTimescale: 600), queue: DispatchQueue.main) { [weak self] time in
+//            // Update player state based on the current time and duration
+//            guard let player = self?.player else { return }
+//            if player.currentTime() >= player.currentItem?.duration {
+//                self?.playerState = .ended
+//            }
+//        }
+//
+//        player?.play()
+//        playerState = .loading
+//    }
+//
+//    func pauseVideo() {
+//        player?.pause()
+//        playerState = .paused
+//    }
+//
+//    func resumeVideo() {
+//        player?.play()
+//        playerState = .playing
+//    }
+//
+//    func stopVideo() {
+//        player?.pause()
+//        player?.replaceCurrentItem(with: nil)
+//        player = nil
+//        playerState = .idle
+//    }
+//
+//   
+//}
